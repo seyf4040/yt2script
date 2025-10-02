@@ -58,3 +58,6 @@ temp/
 .pytest_cache/
 .coverage
 htmlcov/
+
+# cookies
+cookies.txt
