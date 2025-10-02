@@ -1,0 +1,21 @@
+# Flask Backend
+Flask==3.0.0
+flask-cors==4.0.0
+gunicorn==21.2.0
+
+# YouTube and Audio Processing
+yt-dlp==2024.8.6
+
+# OpenAI
+openai==1.35.0
+
+# Streamlit Frontend
+streamlit==1.37.0
+
+# HTTP Requests
+requests==2.32.2
+
+# Environment Variable Management
+python-dotenv==1.1.1
+
+# Database (SQLite is built-in to Python)
