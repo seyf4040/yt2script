@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)
 
-# Initialize OpenAI client - FIXED: Uncommented
+# Initialize OpenAI client
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 # Initialize database
@@ -27,6 +27,10 @@ db = Database()
 
 # Simple password protection
 APP_PASSWORD = os.getenv('APP_PASSWORD', 'changeme')
+
+# Cost optimization: Use cheaper model for cleaning
+# Options: "gpt-4" (expensive, best quality), "gpt-4o-mini" (cheap, good), "gpt-3.5-turbo" (cheapest)
+CLEANING_MODEL = os.getenv('CLEANING_MODEL', 'gpt-4o-mini')  # Changed from gpt-4
 
 
 def require_auth(f):
@@ -47,24 +51,22 @@ def extract_audio(youtube_url):
     
     # Enhanced yt-dlp options for better compatibility
     ydl_opts = {
-        'format': 'bestaudio/best',  # FIXED: Uncommented to ensure best audio quality
+        'format': 'bestaudio/best',
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
             'preferredquality': '192',
         }],
         'outtmpl': output_template,
-        'quiet': False,  # Changed to False for better debugging
+        'quiet': False,
         'no_warnings': False,
         'nocheckcertificate': True,
         'ignoreerrors': False,
-        # Enhanced options for better YouTube compatibility
         'extract_flat': False,
         'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'referer': 'https://www.youtube.com/',
-        # Cookie handling - optional, remove if causing issues
-        'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
-        # Additional options for restricted content
+        # Removed cookies to avoid warnings - works fine without them for public videos
+        # 'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
         'age_limit': None,
         'geo_bypass': True,
         'geo_bypass_country': 'US',
@@ -86,7 +88,6 @@ def extract_audio(youtube_url):
             
             audio_file = os.path.join(temp_dir, f"{video_id}.mp3")
             
-            # Check if file exists
             if not os.path.exists(audio_file):
                 raise Exception(f"Audio file not found after extraction: {audio_file}")
             
@@ -128,7 +129,7 @@ def transcribe_audio(audio_file_path):
 
 
 def clean_transcript(raw_transcript):
-    """Use GPT-4 to clean and format the transcript"""
+    """Use GPT to clean and format the transcript"""
     system_prompt = """You are a transcript editor. Your job is to:
 1. Add proper punctuation and capitalization
 2. Split the text into well-structured paragraphs
@@ -139,9 +140,9 @@ def clean_transcript(raw_transcript):
 Return only the cleaned transcript without any additional comments."""
     
     try:
-        logger.info("Cleaning transcript with GPT-4")
+        logger.info(f"Cleaning transcript with {CLEANING_MODEL}")
         response = client.chat.completions.create(
-            model="gpt-4",
+            model=CLEANING_MODEL,  # Using configurable model
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": raw_transcript}
@@ -160,7 +161,7 @@ Return only the cleaned transcript without any additional comments."""
 @app.route('/health', methods=['GET'])
 def health():
     """Health check endpoint"""
-    return jsonify({'status': 'healthy'}), 200
+    return jsonify({'status': 'healthy', 'model': CLEANING_MODEL}), 200
 
 
 @app.route('/transcribe', methods=['POST'])
@@ -173,7 +174,6 @@ def transcribe():
     if not youtube_url:
         return jsonify({'error': 'YouTube URL is required'}), 400
     
-    # Validate YouTube URL format
     if 'youtube.com' not in youtube_url and 'youtu.be' not in youtube_url:
         return jsonify({'error': 'Invalid YouTube URL'}), 400
     
@@ -189,7 +189,7 @@ def transcribe():
         logger.info("Step 2: Transcribing audio...")
         raw_transcript = transcribe_audio(audio_file)
         
-        # Step 3: Clean with GPT-4
+        # Step 3: Clean with GPT
         logger.info("Step 3: Cleaning transcript...")
         clean_text = clean_transcript(raw_transcript)
         
@@ -250,4 +250,5 @@ def get_transcript(transcript_id):
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 8080))
     logger.info(f"Starting Flask app on port {port}")
+    logger.info(f"Using {CLEANING_MODEL} for transcript cleaning")
     app.run(host='0.0.0.0', port=port, debug=False)

@@ -3,11 +3,12 @@ Flask==3.0.0
 flask-cors==4.0.0
 gunicorn==21.2.0
 
-# YouTube and Audio Processing - UPDATED to latest version
+# YouTube and Audio Processing
 yt-dlp==2024.12.23
 
-# OpenAI
-openai==1.35.0
+# OpenAI - UPDATED to fix httpx compatibility issue
+openai==1.54.4
+httpx==0.27.2
 
 # Streamlit Frontend
 streamlit==1.37.0
