@@ -3,6 +3,8 @@ FROM python:3.11-slim
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     ffmpeg \
+    fonts-dejavu-core \
+    fonts-dejavu-extra \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -16,8 +18,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app.py .
 COPY database.py .
 COPY ui.py .
+COPY pdf_generator.py .
 COPY start.sh .
-
 # Copy Streamlit config
 COPY .streamlit .streamlit
 

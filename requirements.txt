@@ -4,7 +4,8 @@ flask-cors==4.0.0
 gunicorn==21.2.0
 
 # YouTube and Audio Processing
-yt-dlp==2024.12.23
+yt-dlp==2025.9.26
+pydub==0.25.1
 
 # OpenAI - UPDATED to fix httpx compatibility issue
 openai==1.54.4
@@ -18,5 +19,9 @@ requests==2.32.2
 
 # Environment Variable Management
 python-dotenv==1.1.1
+
+# PDF Generation
+reportlab==4.0.7
+markdown==3.5.1
 
 # Database (SQLite is built-in to Python)

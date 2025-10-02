@@ -19,22 +19,31 @@ class Database:
                 youtube_url TEXT NOT NULL,
                 video_title TEXT,
                 transcript TEXT NOT NULL,
+                formatted_transcript TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
         
+        # Check if formatted_transcript column exists, if not add it
+        cursor.execute("PRAGMA table_info(transcripts)")
+        columns = [column[1] for column in cursor.fetchall()]
+        
+        if 'formatted_transcript' not in columns:
+            cursor.execute('ALTER TABLE transcripts ADD COLUMN formatted_transcript TEXT')
+            print("Added formatted_transcript column to existing database")
+        
         conn.commit()
         conn.close()
     
-    def save_transcript(self, youtube_url, video_title, transcript):
+    def save_transcript(self, youtube_url, video_title, transcript, formatted_transcript=None):
         """Save a new transcript to the database"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
         cursor.execute('''
-            INSERT INTO transcripts (youtube_url, video_title, transcript)
-            VALUES (?, ?, ?)
-        ''', (youtube_url, video_title, transcript))
+            INSERT INTO transcripts (youtube_url, video_title, transcript, formatted_transcript)
+            VALUES (?, ?, ?, ?)
+        ''', (youtube_url, video_title, transcript, formatted_transcript))
         
         transcript_id = cursor.lastrowid
         conn.commit()
@@ -49,7 +58,7 @@ class Database:
         cursor = conn.cursor()
         
         cursor.execute('''
-            SELECT id, youtube_url, video_title, transcript, created_at
+            SELECT id, youtube_url, video_title, transcript, formatted_transcript, created_at
             FROM transcripts
             WHERE id = ?
         ''', (transcript_id,))
