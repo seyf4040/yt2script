@@ -143,7 +143,8 @@ def split_audio(audio_file_path, chunk_length_ms=600000):
         chunk.export(chunk_path, format="mp3", bitrate="96k")
         
         chunk_size_mb = os.path.getsize(chunk_path) / (1024 * 1024)
-        logger.info(f"Chunk {i+1}/{num_chunks}: {chunk_size_mb:.1f}MB ({end_ms-start_ms/1000/60:.1f} minutes)")
+        chunk_duration_min = ((end_ms - start_ms) / 1000) / 60
+        logger.info(f"Chunk {i+1}/{num_chunks}: {chunk_size_mb:.1f}MB ({chunk_duration_min:.1f} minutes)")
         
         chunk_files.append(chunk_path)
     

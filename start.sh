@@ -2,7 +2,7 @@
 
 # Start Flask API in the background
 echo "Starting Flask API on port 8080..."
-gunicorn --bind 0.0.0.0:8080 --workers 2 --timeout 300 app:app &
+gunicorn --bind 0.0.0.0:8080 --workers 2 --timeout 1800 app:app &
 
 # Wait a moment for Flask to start
 sleep 3
