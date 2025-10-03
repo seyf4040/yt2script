@@ -18,6 +18,8 @@ st.set_page_config(
 )
 
 # Initialize session state
+if "api_session" not in st.session_state:
+    st.session_state.api_session = requests.Session()
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
 if 'user' not in st.session_state:
@@ -31,7 +33,7 @@ if 'current_transcript' not in st.session_state:
 def check_auth():
     """Check if user is authenticated"""
     try:
-        response = requests.get(f"{API_URL}/auth/current-user")
+        response = st.session_state.api_session.get(f"{API_URL}/auth/current-user")
         if response.status_code == 200:
             data = response.json()
             if data.get('authenticated'):
@@ -49,7 +51,7 @@ def check_auth():
 def login(email, password):
     """Login user"""
     try:
-        response = requests.post(
+        response = st.session_state.api_session.post(
             f"{API_URL}/auth/login",
             json={'email': email, 'password': password}
         )
@@ -69,7 +71,7 @@ def login(email, password):
 def logout():
     """Logout user"""
     try:
-        requests.post(f"{API_URL}/auth/logout")
+        st.session_state.api_session.post(f"{API_URL}/auth/logout")
     except:
         pass
     
@@ -81,7 +83,7 @@ def logout():
 def request_account(email):
     """Request a new account"""
     try:
-        response = requests.post(
+        response = st.session_state.api_session.post(
             f"{API_URL}/auth/request-account",
             json={'email': email}
         )
@@ -98,7 +100,7 @@ def request_account(email):
 def change_password(current_password, new_password):
     """Change user password"""
     try:
-        response = requests.post(
+        response = st.session_state.api_session.post(
             f"{API_URL}/auth/change-password",
             json={
                 'current_password': current_password,
@@ -122,9 +124,9 @@ def make_api_request(endpoint, method='GET', data=None):
     
     try:
         if method == 'GET':
-            response = requests.get(url, headers=headers)
+            response = st.session_state.api_session.get(url, headers=headers)
         elif method == 'POST':
-            response = requests.post(url, json=data, headers=headers)
+            response = st.session_state.api_session.post(url, json=data, headers=headers)
         
         return response
     except Exception as e:
